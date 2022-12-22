@@ -4,6 +4,12 @@ from django.contrib.auth import get_user_model
 User = get_user_model()
 
 class UserSerializer(serializers.ModelSerializer):
+    
+    password = serializers.CharField(
+        write_only = True,
+        required = True,
+        style = {'input_type': 'password'}
+    )
     repassword = serializers.CharField(
         write_only = True,
         required = True,
