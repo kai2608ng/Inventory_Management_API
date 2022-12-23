@@ -48,6 +48,7 @@ class UserViewTest(APITestCase):
         url = reverse('login')        
         response = self.client.post(url, data = {'username': 'admin', 'password': 'password123'})
         self.assertEqual(response.status_code, status.HTTP_200_OK)
+        print(response.content)
 
     def test_get_method_not_allow_in_sign_up(self):
         url = reverse('signup')

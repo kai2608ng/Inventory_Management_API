@@ -43,16 +43,21 @@ class StoreSerializerTest(TestCase):
         user = User.objects.get(pk = 1)
         serializer = StoreSerializer(data = {'name': 'store1', 'user': user})
         self.assertTrue(serializer.is_valid())
-        serializer.save()
+        serializer.save(user = user)
         store = Store.objects.get(pk = 1)
         serializer = StoreSerializer(store, data = {'name': 'new_store'}, partial = True)
         self.assertTrue(serializer.is_valid())
-        serializer.save()
+        serializer.save(user = user)
         self.assertEqual(Store.objects.get(pk = 1).name, 'new_store')
 
 class StoreViewTest(APITestCase):
     def setUp(self):
         User.objects.create_user(username = "admin", password = 'password123')
+
+    # Utils function for force_authentication
+    def force_authentication(self):
+        user = User.objects.get(pk = 1)
+        self.client.force_authenticate(user = user)
 
     # Utils function for creating store
     def create_store(self, name, user):
@@ -64,32 +69,43 @@ class StoreViewTest(APITestCase):
 
         return self.client.post(url, data)
 
-
     def test_list_store(self):
-        url = reverse('store-list')
+        # authentication
+        self.force_authentication()
 
+        url = reverse('store-list')
         response = self.client.get(url)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
     def test_create_store(self):
+        # authentication
+        self.force_authentication()
+
+        # Create store
         name = 'store1'
         user = User.objects.get(pk = 1)
-        
         response = self.create_store(name, user)
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
         self.assertEqual(Store.objects.count(), 1)
 
     def test_retrive_store(self):
+        # authentication
+        self.force_authentication()
+        
+        # Create store
         name = 'store1'
         user = User.objects.get(pk = 1)
-        
         response = self.create_store(name, user)
         
+        # Retrieve store
         url = reverse('store-detail', args = (1, ))
         response = self.client.get(url)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         
     def test_partial_update_store(self):
+        # authentication
+        self.force_authentication()
+
         # Create store
         name = 'store1'
         user = User.objects.get(pk = 1)
@@ -105,11 +121,15 @@ class StoreViewTest(APITestCase):
         self.assertEqual(Store.objects.get(pk = 1).name, 'new_store')
 
     def test_delete_store(self):
+        # authentication
+        self.force_authentication()
+
+        # Create store
         name = 'store1'
         user = User.objects.get(pk = 1)
-        
         response = self.create_store(name, user)
         
+        # Delete store
         url = reverse('store-detail', args = (1, ))
         response = self.client.delete(url)
         self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)

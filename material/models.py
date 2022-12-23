@@ -15,13 +15,13 @@ class Material(models.Model):
     price = models.DecimalField(max_digits = 20, decimal_places = 2)
     max_capacity = models.PositiveSmallIntegerField(default = 0)
     current_capacity = models.PositiveSmallIntegerField(default = 0)
-    product = models.ManyToManyField(Product, through = "MaterialQuantity")
+    product = models.ManyToManyField(Product, through = "MaterialQuantity", related_name = "material_entries")
 
 class MaterialQuantity(models.Model):
     class Meta:
         db_table = "material_quantity"
         unique_together = ['product', 'material']
 
-    product = models.ForeignKey(Product, on_delete = models.CASCADE)
-    material = models.ForeignKey(Material, on_delete = models.CASCADE)
+    product = models.ForeignKey(Product, on_delete = models.CASCADE, related_name = "product_material_quantity")
+    material = models.ForeignKey(Material, on_delete = models.CASCADE, related_name = "material_material_quantity")
     quantity = models.PositiveSmallIntegerField(default = 0)
