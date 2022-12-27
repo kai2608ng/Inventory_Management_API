@@ -119,9 +119,7 @@ class MaterialViewTest(BaseMaterialTest):
 
         # Update material
         url = reverse('material-detail', args = (1, ))
-        name = "new_material"
         data = {
-            'name': name,
             'price': 12.50,
             'store': store,
             'max_capacity': 200,
@@ -130,7 +128,6 @@ class MaterialViewTest(BaseMaterialTest):
         response = self.client.put(url, data)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         m = Material.objects.get(pk = 1)
-        self.assertEqual(m.name, 'new_material')
         self.assertEqual(m.max_capacity, 200)
         # Didn't change current_capacity
         self.assertEqual(m.current_capacity, 0)

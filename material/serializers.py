@@ -20,6 +20,14 @@ class MaterialSerializer(serializers.ModelSerializer):
             raise serializers.ValidationError({"Please enter a valid value"})
         return value
 
+    def validate(self, data):
+        current_capacity = data.get("current_capacity", 0)
+        max_capacity = data.get("max_capacity", 0)
+        if max_capacity < current_capacity:
+            raise serializers.ValidationError({"Please enter a max_capacity and current_capacity"})
+
+        return data
+
 class MaterialQuantitySerializer(serializers.ModelSerializer):
     product = serializers.SlugRelatedField(queryset = Product.objects.all(), slug_field = 'name')
     material = serializers.SlugRelatedField(queryset = Material.objects.all(), slug_field = 'name')

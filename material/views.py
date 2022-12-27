@@ -6,6 +6,7 @@ from .serializers import (
     InventorySerializer
 )
 from store.models import Store
+from product.models import Product
 from rest_framework.response import Response
 from rest_framework import status
 from rest_framework.authentication import TokenAuthentication
@@ -51,24 +52,21 @@ class MaterialViewSet(viewsets.ModelViewSet):
         return Response(serializer.errors)
 
     def update(self, request, pk):
-        store = Store.objects.get(user = request.user)
-        name = request.data.get('name')
-        price = request.data.get('price')
-        max_capacity = request.data.get("max_capacity", 0)
+        material = Material.objects.get(pk = pk)
+        price = request.data.get('price', material.price)
+        max_capacity = request.data.get("max_capacity", material.max_capacity)
 
         data = {
-            'name': name,
             'price': price,
             'max_capacity': max_capacity,
         }
 
         # Update material
-        material = Material.objects.get(pk = pk)
-        serializer = MaterialSerializer(material, data = data)
+        serializer = MaterialSerializer(material, data = data, partial = True)
 
         # Check validation of the data
         if serializer.is_valid():
-            serializer.save(store = store)
+            serializer.save()
             return Response(serializer.data, status = status.HTTP_200_OK)
         return Response(serializer.errors)
 
@@ -104,7 +102,6 @@ class MaterialViewSet(viewsets.ModelViewSet):
                 # Update material current_capacity
                 serializer.save()
                 return Response({"message": "Restock successfully"})
-
             else:
                 return Response(serializer.errors)
 
@@ -126,8 +123,33 @@ class MaterialViewSet(viewsets.ModelViewSet):
         return Response(serializer.data)
 
 class MaterialQuantityViewSet(viewsets.ModelViewSet):
-    queryset = MaterialQuantity.objects.all()
     serializer_class = MaterialQuantitySerializer
     authentication_classes = [TokenAuthentication]
     permission_classes = [IsAuthenticated]
+
+    def get_queryset(self):
+        store = Store.objects.get(user = self.request.user)
+        products = Product.objects.filter(store = store)
+        material_queryset = MaterialQuantity.objects.none()
+        for product in products:
+            material_queryset |= MaterialQuantity.objects.filter(product = product)
+
+        return material_queryset
+
+    def create(self, request):
+        product = request.data.get("product")
+        material = request.data.get("material")
+        quantity = request.data.get("quantity")
+
+        data = {
+            'product': product,
+            'material': material,
+            'quantity': quantity
+        }
+
+        serializer = MaterialQuantitySerializer(data = data)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data, status = status.HTTP_201_CREATED)
         
+        return Response({"error_messages": "Please enter valid data"})
