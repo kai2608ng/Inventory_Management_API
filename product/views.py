@@ -7,7 +7,7 @@ from rest_framework.decorators import action
 from .models import Product
 from .serializers import ProductSerializer
 from store.models import Store
-from material.models import MaterialQuantity, Material
+from material.models import MaterialQuantity
 import json
 from product.services.sale import process_sales
 
