@@ -1,0 +1,12 @@
+services:
+  api:
+    container_name: api_container
+    build:
+      context: .
+    ports:
+    - 8000:8000
+    volumes:
+    - inventory_management_db:/api
+
+volumes:
+  inventory_management_db: 
